@@ -1,18 +1,8 @@
 # n8n-nodes-djomy
 
-This is an n8n community node. It lets you use _app/service name_ in your n8n workflows.
-
-_App/service name_ is _one or two sentences describing the service this node integrates with_.
+n8n community node for [Djomy](https://djomy.africa): send mobile money and bank payouts from any workflow, for example from rows in a Google Sheet.
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/sustainable-use-license/) workflow automation platform.
-
-[Installation](#installation)
-[Operations](#operations)
-[Credentials](#credentials)
-[Compatibility](#compatibility)
-[Usage](#usage)
-[Resources](#resources)
-[Version history](#version-history)
 
 ## Installation
 
@@ -20,27 +10,40 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 
 ## Operations
 
-_List the operations supported by your node._
+Resource **Payout**:
+
+| Operation | What it does |
+|-----------|--------------|
+| Create | Creates a payout order with one payout to one beneficiary. For now payouts are wallet payouts in Guinea (GNF) only. Has a **Dry Run** switch that only computes fees. |
+| Get | Gets an order and the status of its payout. |
+| Get Many | Lists orders. |
+| Retry | Resubmits a failed or rejected payout. |
+
+Create returns the order, including its `payoutItems` with their `status` (`CREATED`, `READY_TO_PROCESS`, `PROCESSING`, `REJECTED`, `SUCCESS`, `FAILED`). Use **Merchant Reference** to tag the payout with your own ID, such as the sheet row.
 
 ## Credentials
 
-_If users need to authenticate with the app/service, provide details here. You should include prerequisites (such as signing up with the service), available authentication methods, and how to set them up._
+Create a **Djomy API** credential with the Client ID and Client Secret from your Djomy merchant space, and pick **Sandbox** or **Production**. The credential signs `X-API-KEY: <clientId>:<HMAC-SHA256 signature>`, exchanges it for a Bearer token at `POST /v1/auth` (valid 1 hour), and refreshes the token automatically.
+
+## Usage: pay from a Google Sheet
+
+1. **Google Sheets Trigger**, event "Row Updated" (a status cell changes).
+2. **If**: `Status` equals `Approved`. Rows that are incomplete or not approved stop here.
+3. **Google Sheets, Update Row**: set `Status` to `Processing`. This is your guard against paying twice if the trigger fires again, because Djomy does not document idempotency. Step 2 must only let `Approved` through.
+4. **Djomy, Payout, Create**: map beneficiary name, amount, provider and account number from the row. Set **Merchant Reference** to the row ID.
+5. **Google Sheets, Update Row**: write back the payout `status` and order `reference` from the Djomy output.
+
+Try step 4 with **Dry Run** and the Sandbox environment first.
 
 ## Compatibility
 
-_State the minimum n8n version, as well as which versions you test against. You can also include any known version incompatibility issues._
-
-## Usage
-
-_This is an optional section. Use it to help users with any difficult or confusing aspects of the node._
-
-_By the time users are looking for community nodes, they probably already know n8n basics. But if you expect new users, you can link to the [Try it out](https://docs.n8n.io/try-it-out/) documentation to help them get started._
+Tested against the Djomy partner API (sandbox) with n8n 1.x.
 
 ## Resources
 
-* [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
-* _Link to app/service documentation._
+- [Djomy API docs](https://developers.djomy.africa)
+- [n8n community nodes docs](https://docs.n8n.io/integrations/#community-nodes)
 
 ## Version history
 
-_This is another optional section. If your node has multiple versions, include a short description of available versions and what changed, as well as any compatibility impact._
+See [CHANGELOG.md](CHANGELOG.md).
