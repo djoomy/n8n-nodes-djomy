@@ -1,9 +1,9 @@
 {
   "name": "n8n-nodes-djomy",
   "version": "0.1.0",
-  "description": "",
+  "description": "n8n node to send mobile money and bank payouts with Djomy",
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://djomy.africa",
   "keywords": ["n8n-community-node-package"],
   "author": { "name": "Oury Diallo", "email": "amadoury313@gmail.com" },
   "repository": {
@@ -17,7 +17,8 @@
     "lint": "n8n-node lint",
     "lint:fix": "n8n-node lint --fix",
     "release": "n8n-node release",
-    "prepublishOnly": "n8n-node prerelease"
+    "prepublishOnly": "n8n-node prerelease",
+    "test": "node --test tests/*.test.js"
   },
   "files": ["dist"],
   "n8n": {
