@@ -1,42 +1,117 @@
+import { createHmac } from 'crypto';
 import type {
-	IAuthenticateGeneric,
+	IAuthenticate,
+	ICredentialDataDecryptedObject,
+	IHttpRequestHelper,
 	ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
 } from 'n8n-workflow';
+
+export const DJOMY_BASE_URLS = {
+	sandbox: 'https://sandbox-api.djomy.africa',
+	production: 'https://api.djomy.africa',
+};
+
+// Djomy expects `X-API-KEY: <clientId>:<hex HMAC-SHA256 of clientId, keyed with clientSecret>`
+export function buildApiKeyHeader(clientId: string, clientSecret: string): string {
+	return `${clientId}:${createHmac('sha256', clientSecret).update(clientId).digest('hex')}`;
+}
+
+// Payout endpoints want a Bearer JWT (valid 1h) obtained from POST /v1/auth, not the raw X-API-KEY.
+export async function fetchAccessToken(
+	helper: IHttpRequestHelper,
+	credentials: ICredentialDataDecryptedObject,
+): Promise<{ accessToken: string }> {
+	const baseUrl =
+		credentials.environment === 'production' ? DJOMY_BASE_URLS.production : DJOMY_BASE_URLS.sandbox;
+	const response = (await helper.helpers.httpRequest({
+		method: 'POST',
+		url: `${baseUrl}/v1/auth`,
+		headers: {
+			'X-API-KEY': buildApiKeyHeader(
+				credentials.clientId as string,
+				credentials.clientSecret as string,
+			),
+		},
+		body: {},
+		json: true,
+	})) as { data: { accessToken: string } };
+	return { accessToken: response.data.accessToken };
+}
 
 export class DjomyApi implements ICredentialType {
 	name = 'djomyApi';
 
 	displayName = 'Djomy API';
 
-	// Link to your community node's README
-	documentationUrl = 'https://github.com/org/-djomy?tab=readme-ov-file#credentials';
+	icon = {
+		light: 'file:../nodes/Djomy/djomy.svg',
+		dark: 'file:../nodes/Djomy/djomy.dark.svg',
+	} as const;
+
+	documentationUrl = 'https://developers.djomy.africa';
 
 	properties: INodeProperties[] = [
 		{
-			displayName: 'API Key',
-			name: 'apiKey',
+			displayName: 'Environment',
+			name: 'environment',
+			type: 'options',
+			options: [
+				{ name: 'Sandbox', value: 'sandbox' },
+				{ name: 'Production', value: 'production' },
+			],
+			default: 'sandbox',
+		},
+		{
+			displayName: 'Client ID',
+			name: 'clientId',
+			type: 'string',
+			required: true,
+			default: '',
+		},
+		{
+			displayName: 'Client Secret',
+			name: 'clientSecret',
 			type: 'string',
 			typeOptions: { password: true },
 			required: true,
 			default: '',
 		},
+		{
+			displayName: 'Access Token',
+			name: 'accessToken',
+			type: 'hidden',
+			typeOptions: { password: true, expirable: true },
+			default: '',
+		},
 	];
 
-	authenticate: IAuthenticateGeneric = {
-		type: 'generic',
-		properties: {
-			headers: {
-				'x-api-key': '={{$credentials.apiKey}}',
-			},
-		},
+	preAuthentication = async function (
+		this: IHttpRequestHelper,
+		credentials: ICredentialDataDecryptedObject,
+	) {
+		return await fetchAccessToken(this, credentials);
 	};
+
+	// Djomy checks both: the Bearer JWT and the signed X-API-KEY on every request.
+	authenticate: IAuthenticate = async (credentials, requestOptions) => ({
+		...requestOptions,
+		headers: {
+			...requestOptions.headers,
+			Authorization: `Bearer ${credentials.accessToken as string}`,
+			'X-API-KEY': buildApiKeyHeader(
+				credentials.clientId as string,
+				credentials.clientSecret as string,
+			),
+		},
+	});
 
 	test: ICredentialTestRequest = {
 		request: {
-			baseURL: 'https://api.djomy.africa',
-			url: '/v1/user',
+			baseURL: `={{$credentials.environment === 'production' ? '${DJOMY_BASE_URLS.production}' : '${DJOMY_BASE_URLS.sandbox}'}}`,
+			url: '/v1/payout-orders',
+			qs: { page: 0, size: 1 },
 		},
 	};
 }
