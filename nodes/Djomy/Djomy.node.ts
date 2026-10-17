@@ -1,6 +1,6 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
-import { userDescription } from './resources/user';
-import { companyDescription } from './resources/company';
+import { DJOMY_BASE_URLS } from '../../credentials/DjomyApi.credentials';
+import { payoutDescription } from './resources/payout';
 
 export class Djomy implements INodeType {
 	description: INodeTypeDescription = {
@@ -10,7 +10,7 @@ export class Djomy implements INodeType {
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-		description: 'Interact with the Djomy API',
+		description: 'Send payouts with the Djomy API',
 		defaults: {
 			name: 'Djomy',
 		},
@@ -19,7 +19,7 @@ export class Djomy implements INodeType {
 		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'djomyApi', required: true }],
 		requestDefaults: {
-			baseURL: 'https://api.djomy.africa',
+			baseURL: `={{$credentials.environment === 'production' ? '${DJOMY_BASE_URLS.production}' : '${DJOMY_BASE_URLS.sandbox}'}}`,
 			headers: {
 				Accept: 'application/json',
 				'Content-Type': 'application/json',
@@ -31,20 +31,10 @@ export class Djomy implements INodeType {
 				name: 'resource',
 				type: 'options',
 				noDataExpression: true,
-				options: [
-					{
-						name: 'User',
-						value: 'user',
-					},
-					{
-						name: 'Company',
-						value: 'company',
-					},
-				],
-				default: 'user',
+				options: [{ name: 'Payout', value: 'payout' }],
+				default: 'payout',
 			},
-			...userDescription,
-			...companyDescription,
+			...payoutDescription,
 		],
 	};
 }
