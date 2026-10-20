@@ -13,7 +13,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/djoomy/n8n-nodes-djomy.git"
+		"url": "git+https://github.com/djoomy/n8n-nodes-djomy.git"
 	},
 	"scripts": {
 		"build": "n8n-node build",
@@ -47,5 +47,9 @@
 	},
 	"peerDependencies": {
 		"n8n-workflow": "*"
+	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
 	}
 }
