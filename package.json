@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-djomy",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "n8n node to automate payments processing with Djomy",
 	"license": "MIT",
 	"homepage": "https://djomy.africa",
