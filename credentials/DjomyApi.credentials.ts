@@ -18,6 +18,12 @@ export function buildApiKeyHeader(clientId: string, clientSecret: string): strin
 	return `${clientId}:${createHmac('sha256', clientSecret).update(clientId).digest('hex')}`;
 }
 
+// Optional: lets Djomy accept a whitelisted domain even when calling from localhost.
+function partnerDomainHeader(credentials: ICredentialDataDecryptedObject): Record<string, string> {
+	const domain = ((credentials.partnerDomain as string) ?? '').trim();
+	return domain ? { 'X-PARTNER-DOMAIN': domain } : {};
+}
+
 // Payout endpoints want a Bearer JWT (valid 1h) obtained from POST /v1/auth, not the raw X-API-KEY.
 export async function fetchAccessToken(
 	helper: IHttpRequestHelper,
@@ -33,6 +39,7 @@ export async function fetchAccessToken(
 				credentials.clientId as string,
 				credentials.clientSecret as string,
 			),
+			...partnerDomainHeader(credentials),
 		},
 		body: {},
 		json: true,
@@ -79,6 +86,14 @@ export class DjomyApi implements ICredentialType {
 			default: '',
 		},
 		{
+			displayName: 'Partner Domain',
+			name: 'partnerDomain',
+			type: 'string',
+			default: '',
+			placeholder: 'e.g. mystore.com',
+			description: 'Optional. Domain allowed by Djomy, sent as the X-PARTNER-DOMAIN header.',
+		},
+		{
 			displayName: 'Access Token',
 			name: 'accessToken',
 			type: 'hidden',
@@ -104,6 +119,7 @@ export class DjomyApi implements ICredentialType {
 				credentials.clientId as string,
 				credentials.clientSecret as string,
 			),
+			...partnerDomainHeader(credentials),
 		},
 	});
 
