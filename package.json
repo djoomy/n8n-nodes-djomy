@@ -35,7 +35,8 @@
 			"dist/credentials/DjomyApi.credentials.js"
 		],
 		"nodes": [
-			"dist/nodes/Djomy/Djomy.node.js"
+			"dist/nodes/Djomy/Djomy.node.js",
+			"dist/nodes/Djomy/DjomyTrigger.node.js"
 		]
 	},
 	"devDependencies": {

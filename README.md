@@ -21,6 +21,15 @@ Resource **Payout**:
 
 Create returns the order, including its `payoutItems` with their `status` (`CREATED`, `READY_TO_PROCESS`, `PROCESSING`, `REJECTED`, `SUCCESS`, `FAILED`). Use **Merchant Reference** to tag the payout with your own ID, such as the sheet row.
 
+## Djomy Trigger
+
+Starts a workflow when Djomy sends a payout webhook (`payout.success`, etc.). Use it to update the sheet row once the payout settles, instead of polling.
+
+1. Add **Djomy Trigger**, pick the payout statuses to react to (default `SUCCESS`, `FAILED`, `REJECTED`), choose the **Djomy API** credential.
+2. Copy its webhook URL into your Djomy merchant space (Developer, Webhook). Djomy keeps one URL per merchant, so use the Production URL once the workflow is active.
+3. Signature (`X-Signature-Webhook: V2:<HMAC-SHA256 of body, keyed with Client Secret>`) is verified by default.
+4. Output is the webhook body: `eventType`, `data.payout.id`, `data.payout.orderId`, `data.payout.status`, amounts. Match the sheet row on `data.payout.orderId` (the order `id` returned by Create), then **Google Sheets, Update Row**.
+
 ## Credentials
 
 Create a **Djomy API** credential with the Client ID and Client Secret from your Djomy merchant space, and pick **Sandbox** or **Production**. The credential signs `X-API-KEY: <clientId>:<HMAC-SHA256 signature>`, exchanges it for a Bearer token at `POST /v1/auth` (valid 1 hour), and refreshes the token automatically.

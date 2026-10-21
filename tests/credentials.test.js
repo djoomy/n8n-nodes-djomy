@@ -42,3 +42,15 @@ test('authenticate sends both Bearer token and signed X-API-KEY', async () => {
 	assert.strictEqual(out.headers['X-API-KEY'], buildApiKeyHeader('client', 'secret'));
 	assert.strictEqual(out.headers.Accept, 'application/json');
 });
+
+test('X-PARTNER-DOMAIN sent only when partnerDomain set', async () => {
+	const { DjomyApi } = require('../dist/credentials/DjomyApi.credentials');
+	const base = { clientId: 'client', clientSecret: 'secret', accessToken: 'jwt' };
+	const withDomain = await new DjomyApi().authenticate(
+		{ ...base, partnerDomain: ' mystore.com ' },
+		{ url: '/x', headers: {} },
+	);
+	assert.strictEqual(withDomain.headers['X-PARTNER-DOMAIN'], 'mystore.com');
+	const without = await new DjomyApi().authenticate(base, { url: '/x', headers: {} });
+	assert.ok(!('X-PARTNER-DOMAIN' in without.headers));
+});
