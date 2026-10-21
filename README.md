@@ -15,7 +15,8 @@ Resource **Payout**:
 | Operation | What it does |
 |-----------|--------------|
 | Create | Creates a payout order with one payout to one beneficiary. For now payouts are wallet payouts in Guinea (GNF) only. Has a **Dry Run** switch that only computes fees. |
-| Get | Gets an order and the status of its payout. |
+| Get Payout Order | Gets an order and the status of its payout. |
+| Get Payout | Gets a single payout (payout item) inside an order. Needs Order ID and Payout ID. |
 | Get Many | Lists orders. |
 | Retry | Resubmits a failed or rejected payout. |
 

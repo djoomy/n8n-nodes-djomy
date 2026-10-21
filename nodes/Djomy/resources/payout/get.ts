@@ -8,7 +8,7 @@ export const payoutGetDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: {
-			show: { resource: ['payout'], operation: ['get', 'retry'] },
+			show: { resource: ['payout'], operation: ['get', 'getPayout', 'retry'] },
 		},
 		description: 'ID of the payout order, as returned by Create',
 	},

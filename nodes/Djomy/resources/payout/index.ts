@@ -32,12 +32,25 @@ export const payoutDescription: INodeProperties[] = [
 				},
 			},
 			{
-				name: 'Get',
+				name: 'Get Payout Order',
 				value: 'get',
 				action: 'Get a payout order',
 				description: 'Get a payout order, including the status of its payouts',
 				routing: {
 					request: { method: 'GET', url: '=/v1/payout-orders/{{$parameter.orderId}}' },
+					output: { postReceive: unwrapData },
+				},
+			},
+			{
+				name: 'Get Payout',
+				value: 'getPayout',
+				action: 'Get a payout',
+				description: 'Get a single payout (payout item) inside an order',
+				routing: {
+					request: {
+						method: 'GET',
+						url: '=/v1/payout-orders/{{$parameter.orderId}}/payout-items/{{$parameter.payoutId}}',
+					},
 					output: { postReceive: unwrapData },
 				},
 			},

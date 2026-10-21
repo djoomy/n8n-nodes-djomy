@@ -8,8 +8,8 @@ export const payoutRetryDescription: INodeProperties[] = [
 		default: '',
 		required: true,
 		displayOptions: {
-			show: { resource: ['payout'], operation: ['retry'] },
+			show: { resource: ['payout'], operation: ['getPayout', 'retry'] },
 		},
-		description: 'ID of the failed payout inside the order',
+		description: 'ID of the payout inside the order',
 	},
 ];
